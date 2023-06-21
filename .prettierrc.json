@@ -1,0 +1,41 @@
+{
+  "overrides": [
+    {
+      "files": "*.ts",
+      "options": {
+        "printWidth": 80,
+        "tabWidth": 4,
+        "useTabs": false,
+        "singleQuote": false,
+        "bracketSpacing": true
+      }
+    },
+    {
+      "files": "*.sol",
+      "options": {
+        "semi": true,
+        "singleQuote": false,
+        "printWidth": 80,
+        "explicitTypes": "always"
+      }
+    },
+    {
+      "files": "contracts/v2/libraries/**/*.sol",
+      "options": {
+        "semi": true,
+        "singleQuote": true,
+        "explicitTypes": "always",
+        "printWidth": 120
+      }
+    },
+    {
+      "files": "contracts/v2-periphery/*/**/*.sol",
+      "options": {
+        "semi": true,
+        "singleQuote": true,
+        "explicitTypes": "always",
+        "printWidth": 120
+      }
+    }
+  ]
+}
