@@ -4,7 +4,6 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 
@@ -15,96 +14,93 @@ contract Migrator is
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    bytes32 public constant SETTER_ROLE = keccak256("SETTER_ROLE");
+    enum Project {
+        AUTO, // 0
+        DEUS, // 1
+        SYMM // 2
+    }
+
+    struct Migration {
+        address user;
+        address token;
+        uint256 amount;
+        uint256 timestamp;
+        uint256 block;
+        Project project;
+    }
+
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
-    bytes32 public merkleRoot;
-    IERC20Upgradeable public moSOLID;
+    // total migrated amount by token address by project
+    mapping(Project => mapping(address => uint256)) public totalMigratedAmount;
 
-    uint256 public totalClaimedAmount;
-    mapping(address => uint256) public claimedAmount;
+    // user migrated amount: project => user => token => amount
+    mapping(Project => mapping(address => mapping(address => uint256)))
+        public migratedAmount;
 
-    event ClaimMoSOLID(address user, uint256 amount, uint256 claimableAmount);
+    // list of user migrations
+    mapping(address => Migration[]) public migrations;
 
-    error InvalidProof();
-    error AlreadyClaimed();
+    event Migrate(
+        address[] token,
+        uint256[] amount,
+        Project[] projects,
+        address receiver
+    );
 
-    function initialize(
-        bytes32 _merkleRoot,
-        address _moSOLID,
-        address _setter,
-        address _admin
-    ) public initializer {
+    function initialize(address _admin) external initializer {
         __Pausable_init();
         __AccessControlEnumerable_init();
 
-        _grantRole(SETTER_ROLE, _setter);
+        _grantRole(PAUSER_ROLE, _admin);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
-
-        merkleRoot = _merkleRoot;
-
-        moSOLID = IERC20Upgradeable(_moSOLID);
     }
 
-    function pause() public onlyRole(PAUSER_ROLE) whenNotPaused {
+    function pause() external onlyRole(PAUSER_ROLE) whenNotPaused {
         _pause();
     }
 
-    function unpause() public onlyRole(PAUSER_ROLE) {
+    function unpause() external onlyRole(PAUSER_ROLE) {
         _unpause();
     }
 
-    function setMerkleRoot(bytes32 _merkleRoot) external onlyRole(SETTER_ROLE) {
-        merkleRoot = _merkleRoot;
-    }
+    function migrate(
+        address[] memory tokens,
+        uint256[] memory amounts,
+        Project[] memory projects,
+        address receiver
+    ) external whenNotPaused {
+        for (uint256 i; i < tokens.length; ++i) {
+            IERC20Upgradeable(tokens[i]).safeTransferFrom(
+                msg.sender,
+                address(this),
+                amounts[i]
+            );
 
-    function claimMoSOLID(uint256 amount, bytes32[] memory proof)
-        external
-        whenNotPaused
-    {
-        if (
-            !MerkleProof.verify(
-                proof,
-                merkleRoot,
-                keccak256(abi.encode(msg.sender, amount))
-            )
-        ) revert InvalidProof();
+            totalMigratedAmount[projects[i]][tokens[i]] += amounts[i];
+            migratedAmount[projects[i]][receiver][tokens[i]] += amounts[i];
 
-        uint256 claimableAmount = amount - claimedAmount[msg.sender];
-        if (claimableAmount > 0) {
-            claimedAmount[msg.sender] += claimableAmount;
-            totalClaimedAmount += claimableAmount;
-            moSOLID.safeTransfer(msg.sender, claimableAmount);
-
-            emit ClaimMoSOLID(msg.sender, amount, claimableAmount);
-        } else {
-            revert AlreadyClaimed();
+            migrations[receiver].push(
+                Migration({
+                    user: receiver,
+                    token: tokens[i],
+                    amount: amounts[i],
+                    timestamp: block.timestamp,
+                    block: block.number,
+                    project: projects[i]
+                })
+            );
         }
+
+        emit Migrate(tokens, amounts, projects, receiver);
     }
 
-    function claimMoSOLIDFor(
-        address account,
-        uint256 amount,
-        address receiver,
-        bytes32[] memory proof
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (
-            !MerkleProof.verify(
-                proof,
-                merkleRoot,
-                keccak256(abi.encode(account, amount))
-            )
-        ) revert InvalidProof();
-
-        uint256 claimableAmount = amount - claimedAmount[account];
-        if (claimableAmount > 0) {
-            claimedAmount[account] += claimableAmount;
-            totalClaimedAmount += claimableAmount;
-            moSOLID.safeTransfer(receiver, claimableAmount);
-
-            emit ClaimMoSOLID(account, amount, claimableAmount);
-        } else {
-            revert AlreadyClaimed();
+    function getUserMigrations(
+        address user
+    ) external view returns (Migration[] memory userMigrations) {
+        userMigrations = new Migration[](migrations[user].length);
+        for (uint256 i; i < userMigrations.length; ++i) {
+            userMigrations[i] = migrations[user][i];
         }
     }
 }
