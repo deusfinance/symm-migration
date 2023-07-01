@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import {
     ERC20,
     IERC20,
@@ -7,9 +7,11 @@ import {
 } from "../typechain-types";
 import {
     getStorageAt,
+    setBalance,
     setStorageAt,
 } from "@nomicfoundation/hardhat-network-helpers";
 import { BigNumber } from "ethers";
+import { MAX_UINT } from "./constants";
 
 export type TestTokens = {
     weth: IWETH9;

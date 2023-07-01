@@ -14,8 +14,8 @@ contract Migrator is
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
 
-    enum Project {
-        AUTO, // 0
+    enum MigrationPreference {
+        BALANCED, // 0
         DEUS, // 1
         SYMM // 2
     }
@@ -26,16 +26,17 @@ contract Migrator is
         uint256 amount;
         uint256 timestamp;
         uint256 block;
-        Project project;
+        MigrationPreference migrationPreference;
     }
 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     // total migrated amount by token address by project
-    mapping(Project => mapping(address => uint256)) public totalMigratedAmount;
+    mapping(MigrationPreference => mapping(address => uint256))
+        public totalMigratedAmount;
 
     // user migrated amount: project => user => token => amount
-    mapping(Project => mapping(address => mapping(address => uint256)))
+    mapping(MigrationPreference => mapping(address => mapping(address => uint256)))
         public migratedAmount;
 
     // list of user migrations
@@ -44,7 +45,7 @@ contract Migrator is
     event Migrate(
         address[] token,
         uint256[] amount,
-        Project[] projects,
+        MigrationPreference[] migrationPreference,
         address receiver
     );
 
@@ -64,10 +65,10 @@ contract Migrator is
         _unpause();
     }
 
-    function migrate(
+    function deposit(
         address[] memory tokens,
         uint256[] memory amounts,
-        Project[] memory projects,
+        MigrationPreference[] memory migrationPreferences,
         address receiver
     ) external whenNotPaused {
         for (uint256 i; i < tokens.length; ++i) {
@@ -77,8 +78,12 @@ contract Migrator is
                 amounts[i]
             );
 
-            totalMigratedAmount[projects[i]][tokens[i]] += amounts[i];
-            migratedAmount[projects[i]][receiver][tokens[i]] += amounts[i];
+            totalMigratedAmount[migrationPreferences[i]][tokens[i]] += amounts[
+                i
+            ];
+            migratedAmount[migrationPreferences[i]][receiver][
+                tokens[i]
+            ] += amounts[i];
 
             migrations[receiver].push(
                 Migration({
@@ -87,12 +92,12 @@ contract Migrator is
                     amount: amounts[i],
                     timestamp: block.timestamp,
                     block: block.number,
-                    project: projects[i]
+                    migrationPreference: migrationPreferences[i]
                 })
             );
         }
 
-        emit Migrate(tokens, amounts, projects, receiver);
+        emit Migrate(tokens, amounts, migrationPreferences, receiver);
     }
 
     function getUserMigrations(
