@@ -25,7 +25,16 @@ const config: HardhatUserConfig = {
       url: 'http://127.0.0.1:8546',
       timeout: 36000,
       allowUnlimitedContractSize: true
-    }
+    },
+    fantom: {
+      url: 'https://fantom.publicnode.com',
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
+      gas: 'auto',
+      // gasPrice: 1000100000000, //500.1 Gwei
+      gasMultiplier: 1.2,
+    },
   },
   solidity: {
     compilers: [
@@ -46,7 +55,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      arbitrumOne: process.env.ARBISCAN_API_KEY!
+      opera: process.env.FTMSCAN_API_KEY!
     }
   }
 };

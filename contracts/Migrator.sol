@@ -30,10 +30,16 @@ contract Migrator is
     }
 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 public constant WITHDRAWER_ROLE = keccak256("PAUSER_ROLE");
+
+    uint256 public earlyMigrationDeadline;
 
     // total migrated amount by token address by project
     mapping(MigrationPreference => mapping(address => uint256))
-        public totalMigratedAmount;
+        public totalLateMigratedAmount;
+
+    mapping(MigrationPreference => mapping(address => uint256))
+        public totalEarlyMigratedAmount;
 
     // user migrated amount: project => user => token => amount
     mapping(MigrationPreference => mapping(address => mapping(address => uint256)))
@@ -53,8 +59,9 @@ contract Migrator is
         __Pausable_init();
         __AccessControlEnumerable_init();
 
-        _grantRole(PAUSER_ROLE, _admin);
         _grantRole(DEFAULT_ADMIN_ROLE, _admin);
+
+        earlyMigrationDeadline = block.timestamp + 30 days;
     }
 
     function pause() external onlyRole(PAUSER_ROLE) whenNotPaused {
@@ -78,9 +85,16 @@ contract Migrator is
                 amounts[i]
             );
 
-            totalMigratedAmount[migrationPreferences[i]][tokens[i]] += amounts[
-                i
-            ];
+            if (block.timestamp < earlyMigrationDeadline) {
+                totalEarlyMigratedAmount[migrationPreferences[i]][
+                    tokens[i]
+                ] += amounts[i];
+            } else {
+                totalLateMigratedAmount[migrationPreferences[i]][
+                    tokens[i]
+                ] += amounts[i];
+            }
+
             migratedAmount[migrationPreferences[i]][receiver][
                 tokens[i]
             ] += amounts[i];
@@ -106,6 +120,71 @@ contract Migrator is
         userMigrations = new Migration[](migrations[user].length);
         for (uint256 i; i < userMigrations.length; ++i) {
             userMigrations[i] = migrations[user][i];
+        }
+    }
+
+    function getTotalEarlyMigratedAmounts(
+        address[] memory tokens
+    )
+        external
+        view
+        returns (
+            uint256[] memory balancedAmounts,
+            uint256[] memory deusAmounts,
+            uint256[] memory symmAmounts
+        )
+    {
+        balancedAmounts = new uint256[](tokens.length);
+        deusAmounts = new uint256[](tokens.length);
+        symmAmounts = new uint256[](tokens.length);
+        for (uint256 i; i < tokens.length; ++i) {
+            balancedAmounts[i] = totalEarlyMigratedAmount[
+                MigrationPreference.BALANCED
+            ][tokens[i]];
+            deusAmounts[i] = totalEarlyMigratedAmount[MigrationPreference.DEUS][
+                tokens[i]
+            ];
+            symmAmounts[i] = totalEarlyMigratedAmount[MigrationPreference.SYMM][
+                tokens[i]
+            ];
+        }
+    }
+
+    function getTotalLateMigratedAmounts(
+        address[] memory tokens
+    )
+        external
+        view
+        returns (
+            uint256[] memory balancedAmounts,
+            uint256[] memory deusAmounts,
+            uint256[] memory symmAmounts
+        )
+    {
+        balancedAmounts = new uint256[](tokens.length);
+        deusAmounts = new uint256[](tokens.length);
+        symmAmounts = new uint256[](tokens.length);
+        for (uint256 i; i < tokens.length; ++i) {
+            balancedAmounts[i] = totalEarlyMigratedAmount[
+                MigrationPreference.BALANCED
+            ][tokens[i]];
+            deusAmounts[i] = totalEarlyMigratedAmount[MigrationPreference.DEUS][
+                tokens[i]
+            ];
+            symmAmounts[i] = totalEarlyMigratedAmount[MigrationPreference.SYMM][
+                tokens[i]
+            ];
+        }
+    }
+
+    function withdraw(
+        address[] memory tokens
+    ) external onlyRole(WITHDRAWER_ROLE) {
+        for (uint256 i; i < tokens.length; ++i) {
+            IERC20Upgradeable(tokens[i]).safeTransfer(
+                msg.sender,
+                IERC20Upgradeable(tokens[i]).balanceOf(address(this))
+            );
         }
     }
 }
