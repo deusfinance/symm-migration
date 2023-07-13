@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
-contract Deployer is Initializable, AccessControlEnumerableUpgradeable {
+contract ContractDeployer is Initializable, AccessControlEnumerableUpgradeable {
     bytes32 public constant DEPLOYER_ROLE = keccak256("DEPLOYER_ROLE");
     address[] public deployedContracts;
     uint256[] public salts;

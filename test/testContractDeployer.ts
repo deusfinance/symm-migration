@@ -1,15 +1,15 @@
 import { ethers, upgrades } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Deployer, Migrator__factory } from "../typechain-types";
+import { ContractDeployer, Migrator__factory } from "../typechain-types";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 
-describe("Deployer", function () {
+describe("ContractDeployer", function () {
     let admin: SignerWithAddress, deployer: SignerWithAddress;
-    let deployerContract: Deployer;
+    let contractDeployer: ContractDeployer;
 
     async function deployContract() {
-        const Factory = await ethers.getContractFactory('Deployer')
+        const Factory = await ethers.getContractFactory('ContractDeployer')
         return upgrades.deployProxy(Factory, [admin.address, deployer.address])
     }
 
@@ -18,22 +18,22 @@ describe("Deployer", function () {
     });
 
     beforeEach(async () => {
-        deployerContract = (await loadFixture(deployContract)) as Deployer
+        contractDeployer = (await loadFixture(deployContract)) as ContractDeployer
     });
 
     it("Should deploy bytecode", async function () {
         const bytecode = Migrator__factory.bytecode
         const salt = 1
 
-        const contractAddress = await deployerContract.connect(deployer).callStatic.deploy(bytecode, salt)
-        await deployerContract.connect(deployer).deploy(bytecode, salt)
+        const contractAddress = await contractDeployer.connect(deployer).callStatic.deploy(bytecode, salt)
+        await contractDeployer.connect(deployer).deploy(bytecode, salt)
 
         expect(
-            await deployerContract.getDeployAddress(bytecode, salt)
+            await contractDeployer.getDeployAddress(bytecode, salt)
         ).eq(
             contractAddress
         ).eq(
-            await deployerContract.deployedContracts(0)
+            await contractDeployer.deployedContracts(0)
         )
 
     });
