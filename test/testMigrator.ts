@@ -8,7 +8,7 @@ import { expect } from "chai";
 import { setNextBlockTimestamp } from "@nomicfoundation/hardhat-network-helpers/dist/src/helpers/time";
 
 describe("Migrator", function () {
-    let admin: SignerWithAddress, user1: SignerWithAddress, user2: SignerWithAddress, user3: SignerWithAddress;
+    let deployer: SignerWithAddress, admin: SignerWithAddress, withdrawer: SignerWithAddress, user1: SignerWithAddress, user2: SignerWithAddress, user3: SignerWithAddress;
     let token1: TestERC20, token2: TestERC20;
     let migrator: Migrator;
 
@@ -18,11 +18,13 @@ describe("Migrator", function () {
     }
 
     before(async () => {
-        [admin, user1, user2, user3] = await ethers.getSigners()
+        [deployer, admin, withdrawer, user1, user2, user3] = await ethers.getSigners()
     });
 
     beforeEach(async () => {
         migrator = (await loadFixture(deployContract)) as Migrator
+
+        await migrator.connect(admin).grantRole(await migrator.WITHDRAWER_ROLE(), withdrawer.address)
 
         const TestERC20 = await ethers.getContractFactory("TestERC20")
         token1 = (await TestERC20.deploy('token 1', 'tkn1')) as TestERC20
@@ -144,5 +146,26 @@ describe("Migrator", function () {
         expect(await migrator.totalEarlyMigratedAmount(1, token2.address)).eq(e(800))
         expect(await migrator.totalEarlyMigratedAmount(2, token1.address)).eq(e(500))
         expect(await migrator.totalEarlyMigratedAmount(2, token2.address)).eq(e(0))
+    });
+
+    it("Withdraw tokens", async function () {
+        const user1Tokens = [token1.address, token1.address, token2.address, token1.address]
+        const user1Amounts = [e(100), e(200), e(300), e(400)]
+        const user1MigratorPreferences = [0, 1, 0, 2]
+
+        await token1.connect(user1).approve(migrator.address, MAX_UINT)
+        await token2.connect(user1).approve(migrator.address, MAX_UINT)
+        await migrator.connect(user1).deposit(user1Tokens, user1Amounts, user1MigratorPreferences, user1.address)
+
+        const tokens = [token1.address, token2.address]
+
+        // Try to withdraw using deployer
+        await expect(migrator.connect(deployer).withdraw(tokens)).to.be.revertedWith('AccessControl: account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 is missing role 0x65d7a28e3265b37a6474929f336521b332c1681b933f6cb9f3376673440d862a')
+
+        // Withdraw using admin
+        await migrator.connect(withdrawer).withdraw(tokens)
+
+        expect(await token1.balanceOf(withdrawer.address)).eq(e(700))
+        expect(await token2.balanceOf(withdrawer.address)).eq(e(300))
     });
 });
