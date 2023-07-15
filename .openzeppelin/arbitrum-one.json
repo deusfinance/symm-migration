@@ -2,12 +2,12 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0xeede8359fbCC2550F56C3855473F4a944eD11185",
-    "txHash": "0xc5438cf39902c0b65049265c79306825db6412567792a94212618b7f05f5376b"
+    "txHash": "0x402c589b7113629e23de18a9a0629a0d0dee1ce76d658009b39753e716d45070"
   },
   "proxies": [
     {
       "address": "0x648c8F802F2Fd7F97dE4F8CC7612cC360A7A5a6c",
-      "txHash": "0x7cab60fcb535ac2de64d9b12f21f1b0666ac38334e6df877f60cf95dbd2e752f",
+      "txHash": "0x504628ba6cd812707d325588f35e6b4397b736756e2ec5e6fb8f59268e2df129",
       "kind": "transparent"
     },
     {
@@ -18,7 +18,7 @@
   "impls": {
     "6efcdfd989c9abc3a61c7fa001cf816542d6427c526a0f2ac9233f50ec7b32f7": {
       "address": "0x8E095091438B9778EE0F6e8d08fd7A4609Db6Ebc",
-      "txHash": "0x8037218dbbcabb43fd3b6f9a5ec4a374000709253fda44acfe351e79dd5de398",
+      "txHash": "0xb5c409f3935b9cd6787e090bc7dab099b6a3ab9fbacfa25d3e52c87e153c81ad",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -212,8 +212,8 @@
         }
       }
     },
-    "6c4af47d56840377345dcc2a5d052716c84c8c0818fbea9d2395bab1c8df4572": {
-      "address": "0xEB9764b2BF4B7Dbbd78d60Bc9b578E7066cA795e",
+    "e48b8c5a846078f68ccdf373f213cf4ee02d5d6d402cd9d2e1535e3c15b104b1": {
+      "address": "0xEA0c12a8e4827e7a19DEC9aA9a6BA7B15Fc9e946",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -304,7 +304,7 @@
             "slot": "251",
             "type": "t_uint256",
             "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:35"
+            "src": "contracts\\Migrator.sol:37"
           },
           {
             "label": "totalLateMigratedAmount",
@@ -312,7 +312,7 @@
             "slot": "252",
             "type": "t_mapping(t_enum(MigrationPreference)3328,t_mapping(t_address,t_uint256))",
             "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:38"
+            "src": "contracts\\Migrator.sol:40"
           },
           {
             "label": "totalEarlyMigratedAmount",
@@ -320,7 +320,7 @@
             "slot": "253",
             "type": "t_mapping(t_enum(MigrationPreference)3328,t_mapping(t_address,t_uint256))",
             "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:41"
+            "src": "contracts\\Migrator.sol:43"
           },
           {
             "label": "migratedAmount",
@@ -328,7 +328,7 @@
             "slot": "254",
             "type": "t_mapping(t_enum(MigrationPreference)3328,t_mapping(t_address,t_mapping(t_address,t_uint256)))",
             "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:45"
+            "src": "contracts\\Migrator.sol:47"
           },
           {
             "label": "migrations",
@@ -336,310 +336,7 @@
             "slot": "255",
             "type": "t_mapping(t_address,t_array(t_struct(Migration)3342_storage)dyn_storage)",
             "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:49"
-          }
-        ],
-        "types": {
-          "t_address": {
-            "label": "address",
-            "numberOfBytes": "20"
-          },
-          "t_array(t_bytes32)dyn_storage": {
-            "label": "bytes32[]",
-            "numberOfBytes": "32"
-          },
-          "t_array(t_struct(Migration)3342_storage)dyn_storage": {
-            "label": "struct Migrator.Migration[]",
-            "numberOfBytes": "32"
-          },
-          "t_array(t_uint256)49_storage": {
-            "label": "uint256[49]",
-            "numberOfBytes": "1568"
-          },
-          "t_array(t_uint256)50_storage": {
-            "label": "uint256[50]",
-            "numberOfBytes": "1600"
-          },
-          "t_bool": {
-            "label": "bool",
-            "numberOfBytes": "1"
-          },
-          "t_bytes32": {
-            "label": "bytes32",
-            "numberOfBytes": "32"
-          },
-          "t_enum(MigrationPreference)3328": {
-            "label": "enum Migrator.MigrationPreference",
-            "members": [
-              "BALANCED",
-              "DEUS",
-              "SYMM"
-            ],
-            "numberOfBytes": "1"
-          },
-          "t_mapping(t_address,t_array(t_struct(Migration)3342_storage)dyn_storage)": {
-            "label": "mapping(address => struct Migrator.Migration[])",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_bool)": {
-            "label": "mapping(address => bool)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
-            "label": "mapping(address => mapping(address => uint256))",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_address,t_uint256)": {
-            "label": "mapping(address => uint256)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_bytes32,t_struct(AddressSet)3020_storage)": {
-            "label": "mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_bytes32,t_struct(RoleData)179_storage)": {
-            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_bytes32,t_uint256)": {
-            "label": "mapping(bytes32 => uint256)",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_enum(MigrationPreference)3328,t_mapping(t_address,t_mapping(t_address,t_uint256)))": {
-            "label": "mapping(enum Migrator.MigrationPreference => mapping(address => mapping(address => uint256)))",
-            "numberOfBytes": "32"
-          },
-          "t_mapping(t_enum(MigrationPreference)3328,t_mapping(t_address,t_uint256))": {
-            "label": "mapping(enum Migrator.MigrationPreference => mapping(address => uint256))",
-            "numberOfBytes": "32"
-          },
-          "t_struct(AddressSet)3020_storage": {
-            "label": "struct EnumerableSetUpgradeable.AddressSet",
-            "members": [
-              {
-                "label": "_inner",
-                "type": "t_struct(Set)2705_storage",
-                "offset": 0,
-                "slot": "0"
-              }
-            ],
-            "numberOfBytes": "64"
-          },
-          "t_struct(Migration)3342_storage": {
-            "label": "struct Migrator.Migration",
-            "members": [
-              {
-                "label": "user",
-                "type": "t_address",
-                "offset": 0,
-                "slot": "0"
-              },
-              {
-                "label": "token",
-                "type": "t_address",
-                "offset": 0,
-                "slot": "1"
-              },
-              {
-                "label": "amount",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "2"
-              },
-              {
-                "label": "timestamp",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "3"
-              },
-              {
-                "label": "block",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "4"
-              },
-              {
-                "label": "migrationPreference",
-                "type": "t_enum(MigrationPreference)3328",
-                "offset": 0,
-                "slot": "5"
-              }
-            ],
-            "numberOfBytes": "192"
-          },
-          "t_struct(RoleData)179_storage": {
-            "label": "struct AccessControlUpgradeable.RoleData",
-            "members": [
-              {
-                "label": "members",
-                "type": "t_mapping(t_address,t_bool)",
-                "offset": 0,
-                "slot": "0"
-              },
-              {
-                "label": "adminRole",
-                "type": "t_bytes32",
-                "offset": 0,
-                "slot": "1"
-              }
-            ],
-            "numberOfBytes": "64"
-          },
-          "t_struct(Set)2705_storage": {
-            "label": "struct EnumerableSetUpgradeable.Set",
-            "members": [
-              {
-                "label": "_values",
-                "type": "t_array(t_bytes32)dyn_storage",
-                "offset": 0,
-                "slot": "0"
-              },
-              {
-                "label": "_indexes",
-                "type": "t_mapping(t_bytes32,t_uint256)",
-                "offset": 0,
-                "slot": "1"
-              }
-            ],
-            "numberOfBytes": "64"
-          },
-          "t_uint256": {
-            "label": "uint256",
-            "numberOfBytes": "32"
-          },
-          "t_uint8": {
-            "label": "uint8",
-            "numberOfBytes": "1"
-          }
-        }
-      }
-    },
-    "214da3f55acad34a0a75db07b031984204f3659a20634a690478a0ec373e3567": {
-      "address": "0x2F29b0FeB346c1a4540B6683B40bA00Af51bdE0E",
-      "txHash": "0x0caa2de69aced38970510c8a7d51f2c9da674502b891a4e76a4e0c6a6d2c8ca7",
-      "layout": {
-        "solcVersion": "0.8.17",
-        "storage": [
-          {
-            "label": "_initialized",
-            "offset": 0,
-            "slot": "0",
-            "type": "t_uint8",
-            "contract": "Initializable",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:62",
-            "retypedFrom": "bool"
-          },
-          {
-            "label": "_initializing",
-            "offset": 1,
-            "slot": "0",
-            "type": "t_bool",
-            "contract": "Initializable",
-            "src": "@openzeppelin\\contracts-upgradeable\\proxy\\utils\\Initializable.sol:67"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "1",
-            "type": "t_array(t_uint256)50_storage",
-            "contract": "ContextUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\utils\\ContextUpgradeable.sol:36"
-          },
-          {
-            "label": "_paused",
-            "offset": 0,
-            "slot": "51",
-            "type": "t_bool",
-            "contract": "PausableUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:29"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "52",
-            "type": "t_array(t_uint256)49_storage",
-            "contract": "PausableUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\security\\PausableUpgradeable.sol:116"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "101",
-            "type": "t_array(t_uint256)50_storage",
-            "contract": "ERC165Upgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\utils\\introspection\\ERC165Upgradeable.sol:41"
-          },
-          {
-            "label": "_roles",
-            "offset": 0,
-            "slot": "151",
-            "type": "t_mapping(t_bytes32,t_struct(RoleData)179_storage)",
-            "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:61"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "152",
-            "type": "t_array(t_uint256)49_storage",
-            "contract": "AccessControlUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlUpgradeable.sol:259"
-          },
-          {
-            "label": "_roleMembers",
-            "offset": 0,
-            "slot": "201",
-            "type": "t_mapping(t_bytes32,t_struct(AddressSet)3020_storage)",
-            "contract": "AccessControlEnumerableUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlEnumerableUpgradeable.sol:22"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "202",
-            "type": "t_array(t_uint256)49_storage",
-            "contract": "AccessControlEnumerableUpgradeable",
-            "src": "@openzeppelin\\contracts-upgradeable\\access\\AccessControlEnumerableUpgradeable.sol:76"
-          },
-          {
-            "label": "earlyMigrationDeadline",
-            "offset": 0,
-            "slot": "251",
-            "type": "t_uint256",
-            "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:36"
-          },
-          {
-            "label": "totalLateMigratedAmount",
-            "offset": 0,
-            "slot": "252",
-            "type": "t_mapping(t_enum(MigrationPreference)3328,t_mapping(t_address,t_uint256))",
-            "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:39"
-          },
-          {
-            "label": "totalEarlyMigratedAmount",
-            "offset": 0,
-            "slot": "253",
-            "type": "t_mapping(t_enum(MigrationPreference)3328,t_mapping(t_address,t_uint256))",
-            "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:42"
-          },
-          {
-            "label": "migratedAmount",
-            "offset": 0,
-            "slot": "254",
-            "type": "t_mapping(t_enum(MigrationPreference)3328,t_mapping(t_address,t_mapping(t_address,t_uint256)))",
-            "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:46"
-          },
-          {
-            "label": "migrations",
-            "offset": 0,
-            "slot": "255",
-            "type": "t_mapping(t_address,t_array(t_struct(Migration)3342_storage)dyn_storage)",
-            "contract": "Migrator",
-            "src": "contracts\\Migrator.sol:50"
+            "src": "contracts\\Migrator.sol:51"
           }
         ],
         "types": {
@@ -818,8 +515,8 @@
       }
     },
     "1f52f9ee0b8f053299fbcd6c2d2d1399d51b3df1aa4602fd94ef94c1aab9f870": {
-      "address": "0x0f58A04647F0fc94847d62f7e0C2027612b59c5D",
-      "txHash": "0x3806205e9749669ac8030f5a5a2f36b1de9f58879296dbfd815b2023275d7b06",
+      "address": "0xC37E31C5aEaf1BD310F19e05FbC824721AB49cBd",
+      "txHash": "0x54b0708a4773305b72f10d8d54b32673f55b02ece39b5b40f48eb85f6f87bfd6",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [

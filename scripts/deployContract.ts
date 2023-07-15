@@ -2,7 +2,7 @@ import { setBalance } from "@nomicfoundation/hardhat-network-helpers";
 import { ethers, network, run } from "hardhat";
 import { MAX_UINT } from "../utils/constants";
 
-const contractName = ''
+const contractName = 'Migrator'
 
 async function main() {
     const Factory = await ethers.getContractFactory(contractName)

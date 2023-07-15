@@ -30,7 +30,9 @@ contract Migrator is
     }
 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant WITHDRAWER_ROLE = keccak256("PAUSER_ROLE");
+    bytes32 public constant UNPAUSER_ROLE = keccak256("UNPAUSER_ROLE");
+    bytes32 public constant WITHDRAWER_ROLE = keccak256("WITHDRAWER_ROLE");
+    bytes32 public constant SETTER_ROLE = keccak256("SETTER_ROLE");
 
     uint256 public earlyMigrationDeadline;
 
@@ -68,7 +70,7 @@ contract Migrator is
         _pause();
     }
 
-    function unpause() external onlyRole(PAUSER_ROLE) {
+    function unpause() external onlyRole(UNPAUSER_ROLE) {
         _unpause();
     }
 
@@ -165,13 +167,13 @@ contract Migrator is
         deusAmounts = new uint256[](tokens.length);
         symmAmounts = new uint256[](tokens.length);
         for (uint256 i; i < tokens.length; ++i) {
-            balancedAmounts[i] = totalEarlyMigratedAmount[
+            balancedAmounts[i] = totalLateMigratedAmount[
                 MigrationPreference.BALANCED
             ][tokens[i]];
-            deusAmounts[i] = totalEarlyMigratedAmount[MigrationPreference.DEUS][
+            deusAmounts[i] = totalLateMigratedAmount[MigrationPreference.DEUS][
                 tokens[i]
             ];
-            symmAmounts[i] = totalEarlyMigratedAmount[MigrationPreference.SYMM][
+            symmAmounts[i] = totalLateMigratedAmount[MigrationPreference.SYMM][
                 tokens[i]
             ];
         }
@@ -186,5 +188,11 @@ contract Migrator is
                 IERC20Upgradeable(tokens[i]).balanceOf(address(this))
             );
         }
+    }
+
+    function setEarlyMigrationDeadline(
+        uint256 _deadline
+    ) external onlyRole(SETTER_ROLE) {
+        earlyMigrationDeadline = _deadline;
     }
 }

@@ -24,7 +24,10 @@ const config: HardhatUserConfig = {
       initialBaseFeePerGas: 0,
       url: 'http://127.0.0.1:8546',
       timeout: 36000,
-      allowUnlimitedContractSize: true
+      allowUnlimitedContractSize: true,
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
     },
     fantom: {
       url: 'https://fantom.publicnode.com',
@@ -34,6 +37,12 @@ const config: HardhatUserConfig = {
       gas: 'auto',
       // gasPrice: 1000100000000, //500.1 Gwei
       gasMultiplier: 1.2,
+    },
+    arbitrum: {
+      url: 'https://arb-mainnet-public.unifra.io',
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
     },
   },
   solidity: {
@@ -55,7 +64,8 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      opera: process.env.FTMSCAN_API_KEY!
+      opera: process.env.FTMSCAN_API_KEY!,
+      arbitrumOne: process.env.ARBISCAN_API_KEY!
     }
   }
 };

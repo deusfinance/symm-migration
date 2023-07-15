@@ -2,28 +2,20 @@ import { setBalance } from "@nomicfoundation/hardhat-network-helpers";
 import { ethers, network, run, upgrades } from "hardhat";
 import { MAX_UINT } from "../utils/constants";
 
-const contractName = 'ContractDeployer'
 
-const mainDeployer = "0xfE351F5Ed699fd5eA80b906F89DfdAd2f885A46C"
+const proxyAddress = "0xe3b6CC7b76a7f67BBCcb66c010780bE0AF31Ff05"
+const contractName = 'Migrator'
 
 async function main() {
     const Factory = await ethers.getContractFactory(contractName)
 
-    const [deployer] = await ethers.getSigners();
+    // await upgrades.forceImport(proxyAddress, Factory)
 
-    if (network.name == 'local') {
-        await setBalance(deployer.address, MAX_UINT);
-    }
-
-    const proxy = await upgrades.deployProxy(Factory, [mainDeployer, mainDeployer])
-    await proxy.deployTransaction.wait()
-    await proxy.deployed()
-
-    console.log('Deployed', proxy.address);
+    await upgrades.upgradeProxy(proxyAddress, Factory)
 
     if (network.name != 'local') {
         await run('verify:verify', {
-            address: proxy.address,
+            address: proxyAddress,
             constructorArguments: []
         })
     }
