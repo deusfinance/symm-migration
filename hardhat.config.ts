@@ -44,6 +44,12 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY!
       ],
     },
+    metis: {
+      url: `https://rpc.ankr.com/metis/${process.env.ANKR_API_KEY}`,
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
+    },
   },
   solidity: {
     compilers: [
@@ -60,13 +66,37 @@ const config: HardhatUserConfig = {
           viaIR: true,
         },
       },
+      {
+        version: "0.8.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 800,
+          },
+          metadata: {
+            bytecodeHash: "none",
+          },
+          viaIR: true,
+        },
+      },
     ],
   },
   etherscan: {
     apiKey: {
       opera: process.env.FTMSCAN_API_KEY!,
-      arbitrumOne: process.env.ARBISCAN_API_KEY!
-    }
+      arbitrumOne: process.env.ARBISCAN_API_KEY!,
+      metis: 'api-key'
+    },
+    customChains: [
+      {
+        network: "metis",
+        chainId: 1088,
+        urls: {
+          apiURL: "https://andromeda-explorer.metis.io/api",
+          browserURL: "https://andromeda-explorer.metis.io",
+        },
+      }
+    ],
   }
 };
 
