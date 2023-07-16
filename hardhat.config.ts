@@ -44,6 +44,12 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY!
       ],
     },
+    bsc: {
+      url: `https://rpc.ankr.com/bsc/${process.env.ANKR_API_KEY}`,
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
+    },
     metis: {
       url: `https://rpc.ankr.com/metis/${process.env.ANKR_API_KEY}`,
       accounts: [
@@ -85,7 +91,8 @@ const config: HardhatUserConfig = {
     apiKey: {
       opera: process.env.FTMSCAN_API_KEY!,
       arbitrumOne: process.env.ARBISCAN_API_KEY!,
-      metis: 'api-key'
+      metis: 'api-key',
+      bsc: process.env.BSCSCAN_API_KEY!
     },
     customChains: [
       {
