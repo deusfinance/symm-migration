@@ -56,6 +56,15 @@ const config: HardhatUserConfig = {
         process.env.PRIVATE_KEY!
       ],
     },
+    polygon: {
+      url: `https://rpc.ankr.com/polygon/${process.env.ANKR_API_KEY}`,
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
+      timeout: 30000,
+      // gas: 'auto'
+      gasPrice: 155100000000, // Gwei
+    },
   },
   solidity: {
     compilers: [
@@ -92,7 +101,8 @@ const config: HardhatUserConfig = {
       opera: process.env.FTMSCAN_API_KEY!,
       arbitrumOne: process.env.ARBISCAN_API_KEY!,
       metis: 'api-key',
-      bsc: process.env.BSCSCAN_API_KEY!
+      bsc: process.env.BSCSCAN_API_KEY!,
+      polygon: process.env.POLYGONSCAN_API_KEY!,
     },
     customChains: [
       {
