@@ -65,6 +65,15 @@ const config: HardhatUserConfig = {
       // gas: 'auto'
       gasPrice: 155100000000, // Gwei
     },
+    ethereum: {
+      url: `https://rpc.ankr.com/eth/${process.env.ANKR_API_KEY}`,
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
+      timeout: 30000,
+      // gas: 'auto'
+      gasPrice: 16100000000, // Gwei
+    },
   },
   solidity: {
     compilers: [
@@ -98,6 +107,7 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
+      mainnet: process.env.ETHERESCAN_API_KEY!,
       opera: process.env.FTMSCAN_API_KEY!,
       arbitrumOne: process.env.ARBISCAN_API_KEY!,
       metis: 'api-key',
