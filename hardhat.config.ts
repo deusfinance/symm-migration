@@ -83,6 +83,15 @@ const config: HardhatUserConfig = {
       gas: 'auto'
       // gasPrice: 16100000000, // Gwei
     },
+    kava  : {
+      url: `https://evm2.kava.io`,
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
+      timeout: 30000,
+      gas: 'auto'
+      // gasPrice: 16100000000, // Gwei
+    },
   },
   solidity: {
     compilers: [
@@ -122,7 +131,8 @@ const config: HardhatUserConfig = {
       metis: 'api-key',
       bsc: process.env.BSCSCAN_API_KEY!,
       polygon: process.env.POLYGONSCAN_API_KEY!,
-      avalanche: process.env.SNOWTRACE_API_KEY!
+      avalanche: process.env.SNOWTRACE_API_KEY!,
+      kava: 'api-key'
     },
     customChains: [
       {
@@ -132,7 +142,15 @@ const config: HardhatUserConfig = {
           apiURL: "https://andromeda-explorer.metis.io/api",
           browserURL: "https://andromeda-explorer.metis.io",
         },
-      }
+      },
+      {
+        network: "kava",
+        chainId: 2222,
+        urls: {
+          apiURL: "https://explorer.kava.io/api",
+          browserURL: "https://explorer.kava.io/",
+        },
+      },
     ],
   },
   paths: {

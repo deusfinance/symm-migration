@@ -23,12 +23,16 @@ async function main() {
 
     console.log('Deployed', proxy.address);
 
+    // const proxyAdmin = await ethers.getContractAt('Ownable', await upgrades.deployProxyAdmin());
+    // (await proxyAdmin.transferOwnership(mainDeployer)).wait()
+
     if (network.name != 'local') {
         await run('verify:verify', {
             address: proxy.address,
             constructorArguments: []
         })
     }
+
 
 }
 
