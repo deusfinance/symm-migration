@@ -74,6 +74,15 @@ const config: HardhatUserConfig = {
       // gas: 'auto'
       gasPrice: 16100000000, // Gwei
     },
+    avalanche: {
+      url: `https://rpc.ankr.com/avalanche/${process.env.ANKR_API_KEY}`,
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
+      timeout: 30000,
+      gas: 'auto'
+      // gasPrice: 16100000000, // Gwei
+    },
   },
   solidity: {
     compilers: [
@@ -113,6 +122,7 @@ const config: HardhatUserConfig = {
       metis: 'api-key',
       bsc: process.env.BSCSCAN_API_KEY!,
       polygon: process.env.POLYGONSCAN_API_KEY!,
+      avalanche: process.env.SNOWTRACE_API_KEY!
     },
     customChains: [
       {
@@ -124,6 +134,9 @@ const config: HardhatUserConfig = {
         },
       }
     ],
+  },
+  paths: {
+    node_modules: "./node_modules/@openzeppelin/contracts", // Add this path to include OpenZeppelin contracts
   }
 };
 
