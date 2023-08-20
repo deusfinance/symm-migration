@@ -22,7 +22,7 @@ const config: HardhatUserConfig = {
     },
     local: {
       initialBaseFeePerGas: 0,
-      url: 'http://127.0.0.1:8546',
+      url: 'http://127.0.0.1:8547',
       timeout: 36000,
       allowUnlimitedContractSize: true,
       accounts: [
@@ -92,6 +92,12 @@ const config: HardhatUserConfig = {
       gas: 'auto'
       // gasPrice: 16100000000, // Gwei
     },
+    base: {
+      url: `https://base.meowrpc.com`,
+      accounts: [
+        process.env.PRIVATE_KEY!
+      ],
+    },
   },
   solidity: {
     compilers: [
@@ -132,7 +138,9 @@ const config: HardhatUserConfig = {
       bsc: process.env.BSCSCAN_API_KEY!,
       polygon: process.env.POLYGONSCAN_API_KEY!,
       avalanche: process.env.SNOWTRACE_API_KEY!,
-      kava: 'api-key'
+      kava: 'api-key',
+      base: 'api-key'
+
     },
     customChains: [
       {
@@ -151,6 +159,14 @@ const config: HardhatUserConfig = {
           browserURL: "https://explorer.kava.io/",
         },
       },
+      {
+        network: 'base',
+        chainId: 8453,
+        urls: {
+          apiURL: `https://api.basescan.org/api?apiKey=${process.env.BASESCAN_API_KEY!}`,
+          browserURL: "https://basescan.org"
+        }
+      }
     ],
   },
   paths: {

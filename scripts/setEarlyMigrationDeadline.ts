@@ -3,7 +3,7 @@ import { ethers, network, run } from "hardhat";
 import { MAX_UINT } from "../utils/constants";
 
 const migratorAddress = '0xe3b6CC7b76a7f67BBCcb66c010780bE0AF31Ff05'
-const deadline = '1692624600'
+const deadline = '1693229400'
 
 const mainDeployerAddress = '0xfE351F5Ed699fd5eA80b906F89DfdAd2f885A46C'
 
