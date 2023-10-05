@@ -64,7 +64,7 @@ contract Presale is
         uint256 minAmountOut,
         uint160 sqrtPriceLimitX96,
         address receiver
-    ) external {
+    ) external whenNotPaused {
         IERC20Upgradeable(USDC).safeTransferFrom(
             msg.sender,
             address(this),
