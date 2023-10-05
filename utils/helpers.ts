@@ -41,6 +41,10 @@ export async function sleep(s: number) {
     return new Promise((resolve) => setTimeout(resolve, s * 1000));
 }
 
+function toBytes32(amount: BigNumber) {
+    return ethers.utils.hexlify(ethers.utils.zeroPad(amount.toHexString(), 32))
+  }
+
 async function findBalanceOfSlot(token: IERC20) {
     const balance = await token.balanceOf(token.address);
     const newBalance = balance.add(1);
