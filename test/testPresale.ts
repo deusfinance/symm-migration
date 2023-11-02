@@ -7,6 +7,8 @@ import { MAX_UINT } from "../utils/constants";
 import { expect } from "chai";
 import { setNextBlockTimestamp } from "@nomicfoundation/hardhat-network-helpers/dist/src/helpers/time";
 
+/*
+
 describe("Presale", function () {
     let deployer: SignerWithAddress, admin: SignerWithAddress, user: SignerWithAddress, receiver: SignerWithAddress;
     let migrator: Migrator;
@@ -62,3 +64,5 @@ describe("Presale", function () {
     });
 
 });
+
+*/

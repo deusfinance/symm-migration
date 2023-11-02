@@ -56,6 +56,14 @@ contract Migrator is
         MigrationPreference[] migrationPreference,
         address receiver
     );
+    event Split(address user, uint256 index, uint256 amount);
+    event Transfer(address user, uint256 index, address receiver);
+    event Undo(address user, uint256 index);
+    event ChangePreference(
+        address user,
+        uint256 index,
+        MigrationPreference newPreference
+    );
 
     function initialize(address _admin) external initializer {
         __Pausable_init();
@@ -177,6 +185,132 @@ contract Migrator is
                 tokens[i]
             ];
         }
+    }
+
+    function split(uint256 index, uint256 amount) external whenNotPaused {
+        Migration storage migration = migrations[msg.sender][index];
+
+        require(migration.amount > amount, "Amount Too High");
+
+        migration.amount -= amount;
+
+        migrations[msg.sender].push(
+            Migration({
+                user: msg.sender,
+                token: migration.token,
+                amount: amount,
+                timestamp: migration.timestamp,
+                block: migration.block,
+                migrationPreference: migration.migrationPreference
+            })
+        );
+
+        emit Split(msg.sender, index, amount);
+    }
+
+    function transfer(uint256 index, address receiver) external whenNotPaused {
+        require(receiver != msg.sender, "Transfer To Owner");
+
+        // transfer the migration to receiver
+        Migration memory migration = migrations[msg.sender][index];
+        migration.user = receiver;
+        migrations[receiver].push(migration);
+
+        // remove the migration from msg.sender migrations
+        migrations[msg.sender][index] = migrations[msg.sender][
+            migrations[msg.sender].length - 1
+        ];
+        migrations[msg.sender].pop();
+
+        // update migratedAmount for msg.sender and receiver
+        migratedAmount[migration.migrationPreference][msg.sender][
+            migration.token
+        ] -= migration.amount;
+        migratedAmount[migration.migrationPreference][receiver][
+            migration.token
+        ] += migration.amount;
+
+        emit Transfer(msg.sender, index, receiver);
+    }
+
+    function undo(uint256 index) external whenNotPaused {
+        // remove the migration from msg.sender migrations
+        Migration memory migration = migrations[msg.sender][index];
+        migrations[msg.sender][index] = migrations[msg.sender][
+            migrations[msg.sender].length - 1
+        ];
+        migrations[msg.sender].pop();
+
+        // reduce user's migrated amount
+        migratedAmount[migration.migrationPreference][msg.sender][
+            migration.token
+        ] -= migration.amount;
+
+        // reduce total early/late migrated amount
+        if (migration.timestamp < earlyMigrationDeadline) {
+            totalEarlyMigratedAmount[migration.migrationPreference][
+                migration.token
+            ] -= migration.amount;
+        } else {
+            totalLateMigratedAmount[migration.migrationPreference][
+                migration.token
+            ] -= migration.amount;
+        }
+
+        // transfer migrated token back
+        IERC20Upgradeable(migration.token).safeTransfer(
+            msg.sender,
+            migration.amount
+        );
+
+        emit Undo(msg.sender, index);
+    }
+
+    function changePreference(
+        uint256 index,
+        MigrationPreference newPreference
+    ) external whenNotPaused {
+        Migration storage migration = migrations[msg.sender][index];
+
+        require(
+            migration.migrationPreference != newPreference,
+            "Same Migration Preference"
+        );
+
+        // undo storages which migration preference effects
+        migratedAmount[migration.migrationPreference][msg.sender][
+            migration.token
+        ] -= migration.amount;
+
+        if (migration.timestamp < earlyMigrationDeadline) {
+            totalEarlyMigratedAmount[migration.migrationPreference][
+                migration.token
+            ] -= migration.amount;
+        } else {
+            totalLateMigratedAmount[migration.migrationPreference][
+                migration.token
+            ] -= migration.amount;
+        }
+
+        // update migration preference
+        migration.migrationPreference = newPreference;
+
+        // redo storages which migration preference effects
+        migratedAmount[migration.migrationPreference][msg.sender][
+            migration.token
+        ] += migration.amount;
+
+        if (migration.timestamp < earlyMigrationDeadline) {
+            totalEarlyMigratedAmount[migration.migrationPreference][
+                migration.token
+            ] += migration.amount;
+        } else {
+            totalLateMigratedAmount[migration.migrationPreference][
+                migration.token
+            ] += migration.amount;
+        }
+
+        emit ChangePreference(msg.sender, index, newPreference);
     }
 
     function withdraw(

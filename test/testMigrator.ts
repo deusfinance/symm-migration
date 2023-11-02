@@ -5,7 +5,6 @@ import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { e } from "../utils/helpers";
 import { MAX_UINT } from "../utils/constants";
 import { expect } from "chai";
-import { setNextBlockTimestamp } from "@nomicfoundation/hardhat-network-helpers/dist/src/helpers/time";
 
 describe("Migrator", function () {
     let deployer: SignerWithAddress, admin: SignerWithAddress, withdrawer: SignerWithAddress, user1: SignerWithAddress, user2: SignerWithAddress, user3: SignerWithAddress;
@@ -30,13 +29,15 @@ describe("Migrator", function () {
         token1 = (await TestERC20.deploy('token 1', 'tkn1')) as TestERC20
         token2 = (await TestERC20.deploy('token 2', 'tkn2')) as TestERC20
 
-        await token1.mint(user1.address, e(2000))
-        await token1.mint(user2.address, e(2000))
-        await token1.mint(user3.address, e(2000))
+        const tokens = [token1, token2]
+        const users = [user1, user2, user3]
 
-        await token2.mint(user1.address, e(2000))
-        await token2.mint(user2.address, e(2000))
-        await token2.mint(user3.address, e(2000))
+        for (const token of tokens) {
+            for (const user of users) {
+                await token.mint(user.address, e(2000))
+                await token.connect(user).approve(migrator.address, MAX_UINT)
+            }
+        }
     });
 
     it("Deposit tokens", async function () {
@@ -168,4 +169,73 @@ describe("Migrator", function () {
         expect(await token1.balanceOf(withdrawer.address)).eq(e(700))
         expect(await token2.balanceOf(withdrawer.address)).eq(e(300))
     });
+
+    it("Split migration", async function () {
+        await migrator.connect(user1).deposit([token1.address], [e(1000)], [0], user1.address)
+        const oldMigration = await migrator.migrations(user1.address, 0)
+
+        await migrator.connect(user1).split(0, e(300))
+
+        const newMigration = await migrator.migrations(user1.address, 1)
+
+        for (const field of ['user', 'token', 'timestamp', 'block', 'migrationPreference']) {
+            expect(oldMigration[field]).eq(newMigration[field])
+        }
+        expect(newMigration.amount).eq(e(300))
+        expect((await migrator.migrations(user1.address, 0)).amount).eq(e(700))
+    })
+
+    it("Transfer migration", async function () {
+        await migrator.connect(user1).deposit([token1.address], [e(1000)], [0], user1.address)
+        const oldMigration = await migrator.migrations(user1.address, 0)
+
+        await migrator.connect(user1).transfer(0, user2.address)
+
+        const newMigration = await migrator.migrations(user2.address, 0)
+
+        for (const field of ['token', 'amount', 'timestamp', 'block', 'migrationPreference']) {
+            expect(oldMigration[field]).eq(newMigration[field])
+        }
+        expect(newMigration.user).eq(user2.address)
+        expect((await migrator.getUserMigrations(user1.address)).length).eq(0)
+
+        expect(await migrator.migratedAmount(0, user1.address, token1.address)).eq(0)
+        expect(await migrator.migratedAmount(0, user2.address, token1.address)).eq(e(1000))
+    })
+
+    it("Undo migration", async function () {
+        let balance = await token1.balanceOf(user1.address)
+
+        await migrator.connect(user1).deposit([token1.address], [e(1000)], [0], user1.address)
+        await migrator.connect(user1).split(0, e(400))
+        await migrator.connect(user1).undo(1)
+
+        expect(await token1.balanceOf(user1.address)).eq(balance.sub(e(600)))
+
+        expect((await migrator.getUserMigrations(user1.address)).length).eq(1)
+        expect(await migrator.migratedAmount(0, user1.address, token1.address)).eq(e(600))
+        expect(await migrator.totalEarlyMigratedAmount(0, token1.address)).eq(e(600))
+        expect(await migrator.totalLateMigratedAmount(0, token1.address)).eq(0)
+    })
+
+    it("Change migration preference", async function () {
+        await migrator.connect(user1).deposit([token1.address], [e(1000)], [0], user1.address)
+        await migrator.connect(user1).split(0, e(400))
+
+        const oldMigration = await migrator.migrations(user1.address, 1)
+        await migrator.connect(user1).changePreference(1, 1)
+        const newMigration = await migrator.migrations(user1.address, 1)
+
+        for (const field of ['user', 'token', 'amount', 'timestamp', 'block']) {
+            expect(oldMigration[field]).eq(newMigration[field])
+        }
+        expect(newMigration.migrationPreference).eq(1)
+
+        expect(await migrator.migratedAmount(0, user1.address, token1.address)).eq(e(600))
+        expect(await migrator.migratedAmount(1, user1.address, token1.address)).eq(e(400))
+        expect(await migrator.totalEarlyMigratedAmount(0, token1.address)).eq(e(600))
+        expect(await migrator.totalEarlyMigratedAmount(1, token1.address)).eq(e(400))
+        expect(await migrator.totalLateMigratedAmount(0, token1.address)).eq(0)
+    })
+
 });
