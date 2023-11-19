@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/interfaces/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract Migrator is
     Initializable,
@@ -34,6 +35,8 @@ contract Migrator is
     bytes32 public constant WITHDRAWER_ROLE = keccak256("WITHDRAWER_ROLE");
     bytes32 public constant SETTER_ROLE = keccak256("SETTER_ROLE");
 
+    address public constant DEUS = 0xDE5ed76E7c05eC5e4572CfC88d1ACEA165109E44;
+
     uint256 public earlyMigrationDeadline;
 
     // total migrated amount by token address by project
@@ -50,6 +53,14 @@ contract Migrator is
     // list of user migrations
     mapping(address => Migration[]) public migrations;
 
+    bytes32 public legacyDEIMerkleRoot;
+    bytes32 public bDEIMerkleRoot;
+
+    // users converted amount: user => token => amount
+    // address public 
+    mapping(address => mapping(address => uint256)) public convertedAmount;
+    address public bDEI;
+
     event Migrate(
         address[] token,
         uint256[] amount,
@@ -64,6 +75,10 @@ contract Migrator is
         uint256 index,
         MigrationPreference newPreference
     );
+    event SetMerkleRoots(bytes32 legacyDEIMerkleRoot, bytes32 bDEIMerkleRoot);
+    event Convert(address token, uint256 tokenAmount, uint256 deusAmount);
+
+    error InvalidProof();
 
     function initialize(address _admin) external initializer {
         __Pausable_init();
@@ -80,6 +95,17 @@ contract Migrator is
 
     function unpause() external onlyRole(UNPAUSER_ROLE) {
         _unpause();
+    }
+
+    function setMerkleRoots(bytes32 legacyDEIMerkleRoot_, bytes32 bDEIMerkleRoot_) external onlyRole(SETTER_ROLE) {
+        legacyDEIMerkleRoot = legacyDEIMerkleRoot_;
+        bDEIMerkleRoot = bDEIMerkleRoot_;
+
+        emit SetMerkleRoots(legacyDEIMerkleRoot_, bDEIMerkleRoot_);
+    }
+
+    function setBDEIAddress(address bDEI_) external onlyRole(SETTER_ROLE) {
+        bDEI = bDEI_;
     }
 
     function deposit(
@@ -324,9 +350,91 @@ contract Migrator is
         }
     }
 
-    function setEarlyMigrationDeadline(
-        uint256 _deadline
-    ) external onlyRole(SETTER_ROLE) {
-        earlyMigrationDeadline = _deadline;
+    function wipeMigrations(
+        address[] memory users,
+        address[] memory tokens
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        for (uint256 i = 0; i < users.length; ++i) {
+            address user = users[i];
+            uint256 length = migrations[user].length;
+            for (uint256 k = 0; k < tokens.length; ++k) {
+                uint256 j = 0;
+                while (j < length) {
+                    if (migrations[user][j].token == tokens[k]) {
+                        length -= 1;
+                        migrations[user][j] = migrations[user][length];
+                        migrations[user].pop();
+                    } else {
+                        j += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    function convertBDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external {
+        require(amount <= maxAmount, "Invalid Amount");
+         if (
+            !MerkleProof.verify(
+                proof,
+                bDEIMerkleRoot,
+                keccak256(abi.encode(msg.sender, maxAmount))
+            )
+        ) revert InvalidProof();
+
+        convertedAmount[msg.sender][bDEI] += amount;
+        require(convertedAmount[msg.sender][bDEI] <= maxAmount, "Amount Too High");
+
+        IERC20Upgradeable(bDEI).safeTransferFrom(
+            msg.sender,
+            address(this),
+            amount
+        );
+
+        uint256 deusAmount = amount / 185;
+        IERC20Upgradeable(DEUS).safeTransfer(msg.sender, deusAmount);
+
+        emit Convert(bDEI, amount, deusAmount);
+    }
+
+    function convertLegacyDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external {
+        require(amount <= maxAmount, "Invalid Amount");
+         if (
+            !MerkleProof.verify(
+                proof,
+                legacyDEIMerkleRoot,
+                keccak256(abi.encode(msg.sender, maxAmount))
+            )
+        ) revert InvalidProof();
+
+        address legacyDEI = 0xDE12c7959E1a72bbe8a5f7A1dc8f8EeF9Ab011B3;
+        convertedAmount[msg.sender][legacyDEI] += amount;
+        require(convertedAmount[msg.sender][legacyDEI] <= maxAmount, "Amount Too High");
+
+        IERC20Upgradeable(legacyDEI).safeTransferFrom(
+            msg.sender,
+            address(this),
+            amount
+        );
+
+        uint256 deusAmount = amount / 217;
+        IERC20Upgradeable(DEUS).safeTransfer(msg.sender, deusAmount);
+
+        emit Convert(legacyDEI, amount, deusAmount);
+    }
+
+    function convertXDEUS(uint256 amount) external {
+        address xDeus = 0x953Cd009a490176FcEB3a26b9753e6F01645ff28;
+        IERC20Upgradeable(xDeus).safeTransferFrom(
+            msg.sender,
+            address(this),
+            amount
+        );
+
+        convertedAmount[msg.sender][xDeus] += amount;
+
+        IERC20Upgradeable(DEUS).safeTransfer(msg.sender, amount);
+
+        emit Convert(xDeus, amount, amount);
     }
 }
