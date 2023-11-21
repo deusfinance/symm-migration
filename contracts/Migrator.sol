@@ -214,6 +214,8 @@ contract Migrator is
     }
 
     function split(uint256 index, uint256 amount) external whenNotPaused {
+        require(index < migrations[msg.sender].length, "Index Out Of Range");
+
         Migration storage migration = migrations[msg.sender][index];
 
         require(migration.amount > amount, "Amount Too High");
@@ -235,6 +237,7 @@ contract Migrator is
     }
 
     function transfer(uint256 index, address receiver) external whenNotPaused {
+        require(index < migrations[msg.sender].length, "Index Out Of Range");
         require(receiver != msg.sender, "Transfer To Owner");
 
         // transfer the migration to receiver
@@ -260,6 +263,8 @@ contract Migrator is
     }
 
     function undo(uint256 index) external whenNotPaused {
+        require(index < migrations[msg.sender].length, "Index Out Of Range");
+
         // remove the migration from msg.sender migrations
         Migration memory migration = migrations[msg.sender][index];
         migrations[msg.sender][index] = migrations[msg.sender][
@@ -296,6 +301,8 @@ contract Migrator is
         uint256 index,
         MigrationPreference newPreference
     ) external whenNotPaused {
+        require(index < migrations[msg.sender].length, "Index Out Of Range");
+
         Migration storage migration = migrations[msg.sender][index];
 
         require(
@@ -372,7 +379,7 @@ contract Migrator is
         }
     }
 
-    function convertBDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external {
+    function convertBDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external whenNotPaused {
         require(amount <= maxAmount, "Invalid Amount");
          if (
             !MerkleProof.verify(
@@ -397,7 +404,7 @@ contract Migrator is
         emit Convert(bDEI, amount, deusAmount);
     }
 
-    function convertLegacyDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external {
+    function convertLegacyDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external whenNotPaused {
         require(amount <= maxAmount, "Invalid Amount");
          if (
             !MerkleProof.verify(
@@ -423,7 +430,7 @@ contract Migrator is
         emit Convert(legacyDEI, amount, deusAmount);
     }
 
-    function convertXDEUS(uint256 amount) external {
+    function convertXDEUS(uint256 amount) external whenNotPaused {
         address xDeus = 0x953Cd009a490176FcEB3a26b9753e6F01645ff28;
         IERC20Upgradeable(xDeus).safeTransferFrom(
             msg.sender,
