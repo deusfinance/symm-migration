@@ -7,6 +7,7 @@ import { MAX_UINT } from "../utils/constants";
 import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { smock } from "@defi-wonderland/smock";
+import exp from "constants";
 
 describe("Migrator", function () {
     let deployer: SignerWithAddress, admin: SignerWithAddress, withdrawer: SignerWithAddress, user1: SignerWithAddress, user2: SignerWithAddress, user3: SignerWithAddress;
@@ -293,6 +294,11 @@ describe("Migrator", function () {
         expect((await migrator.getUserMigrations(user2.address)).length).eq(0)
     })
 
+    it("Locking", async function () {
+        await migrator.connect(user1).deposit([bDEI.address], [e(1000)], [0], user1.address)
+        await expect(migrator.connect(user1).undo(0)).to.be.revertedWith("LOCKED")
+    });
+
     describe("Converts", async () => {
         let user: SignerWithAddress
 
@@ -313,7 +319,7 @@ describe("Migrator", function () {
 
         it("bDEI", async () => {
             await migrator.connect(admin).setMerkleRoots(zeroRoot, merkleRoot)
-            const deus = await smock.fake('ERC20', {address: await migrator.DEUS()}) 
+            const deus = await smock.fake('ERC20', { address: await migrator.DEUS() })
             deus.transfer.whenCalledWith(user.address, halfAmount.div(185)).returns(true)
 
             await bDEI.mint(user.address, amount)
@@ -329,8 +335,8 @@ describe("Migrator", function () {
 
         it("legacyDEI", async () => {
             await migrator.connect(admin).setMerkleRoots(merkleRoot, zeroRoot)
-            const deus = await smock.fake('ERC20', {address: await migrator.DEUS()}) 
-            const legacyDEI = await smock.fake('ERC20', {address: '0xDE12c7959E1a72bbe8a5f7A1dc8f8EeF9Ab011B3'}) 
+            const deus = await smock.fake('ERC20', { address: await migrator.DEUS() })
+            const legacyDEI = await smock.fake('ERC20', { address: '0xDE12c7959E1a72bbe8a5f7A1dc8f8EeF9Ab011B3' })
 
             legacyDEI.transferFrom.whenCalledWith(user.address, migrator.address, halfAmount).returns(true)
             deus.transfer.whenCalledWith(user.address, halfAmount.div(217)).returns(true)
@@ -346,8 +352,8 @@ describe("Migrator", function () {
 
         it("xDEUS", async () => {
             await migrator.connect(admin).setMerkleRoots(merkleRoot, zeroRoot)
-            const deus = await smock.fake('ERC20', {address: await migrator.DEUS()}) 
-            const xDEUS = await smock.fake('ERC20', {address: '0x953Cd009a490176FcEB3a26b9753e6F01645ff28'}) 
+            const deus = await smock.fake('ERC20', { address: await migrator.DEUS() })
+            const xDEUS = await smock.fake('ERC20', { address: '0x953Cd009a490176FcEB3a26b9753e6F01645ff28' })
 
             xDEUS.transferFrom.whenCalledWith(user.address, migrator.address, halfAmount).returns(true)
             deus.transfer.whenCalledWith(user.address, halfAmount).returns(true)

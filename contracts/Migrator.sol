@@ -213,7 +213,7 @@ contract Migrator is
         }
     }
 
-    function split(uint256 index, uint256 amount) external whenNotPaused {
+    function split(uint256 index, uint256 amount) external whenNotPaused checkLock(index){
         require(index < migrations[msg.sender].length, "Index Out Of Range");
 
         Migration storage migration = migrations[msg.sender][index];
@@ -236,7 +236,7 @@ contract Migrator is
         emit Split(msg.sender, index, amount);
     }
 
-    function transfer(uint256 index, address receiver) external whenNotPaused {
+    function transfer(uint256 index, address receiver) external whenNotPaused checkLock(index){
         require(index < migrations[msg.sender].length, "Index Out Of Range");
         require(receiver != msg.sender, "Transfer To Owner");
 
@@ -262,7 +262,7 @@ contract Migrator is
         emit Transfer(msg.sender, index, receiver);
     }
 
-    function undo(uint256 index) external whenNotPaused {
+    function undo(uint256 index) external whenNotPaused checkLock(index) {
         require(index < migrations[msg.sender].length, "Index Out Of Range");
 
         // remove the migration from msg.sender migrations
@@ -300,7 +300,7 @@ contract Migrator is
     function changePreference(
         uint256 index,
         MigrationPreference newPreference
-    ) external whenNotPaused {
+    ) external whenNotPaused checkLock(index) {
         require(index < migrations[msg.sender].length, "Index Out Of Range");
 
         Migration storage migration = migrations[msg.sender][index];
@@ -443,5 +443,12 @@ contract Migrator is
         IERC20Upgradeable(DEUS).safeTransfer(msg.sender, amount);
 
         emit Convert(xDeus, amount, amount);
+    }
+
+    modifier checkLock(uint256 index) {
+        address legacyDEI = 0xDE12c7959E1a72bbe8a5f7A1dc8f8EeF9Ab011B3;
+        address token = migrations[msg.sender][index].token;
+        require(token != legacyDEI && token != bDEI, "LOCKED");
+        _;
     }
 }
