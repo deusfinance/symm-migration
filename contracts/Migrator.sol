@@ -108,47 +108,47 @@ contract Migrator is
         bDEI = bDEI_;
     }
 
-    function deposit(
-        address[] memory tokens,
-        uint256[] memory amounts,
-        MigrationPreference[] memory migrationPreferences,
-        address receiver
-    ) external whenNotPaused {
-        for (uint256 i; i < tokens.length; ++i) {
-            IERC20Upgradeable(tokens[i]).safeTransferFrom(
-                msg.sender,
-                address(this),
-                amounts[i]
-            );
+    // function deposit(
+    //     address[] memory tokens,
+    //     uint256[] memory amounts,
+    //     MigrationPreference[] memory migrationPreferences,
+    //     address receiver
+    // ) external whenNotPaused {
+    //     for (uint256 i; i < tokens.length; ++i) {
+    //         IERC20Upgradeable(tokens[i]).safeTransferFrom(
+    //             msg.sender,
+    //             address(this),
+    //             amounts[i]
+    //         );
 
-            if (block.timestamp < earlyMigrationDeadline) {
-                totalEarlyMigratedAmount[migrationPreferences[i]][
-                    tokens[i]
-                ] += amounts[i];
-            } else {
-                totalLateMigratedAmount[migrationPreferences[i]][
-                    tokens[i]
-                ] += amounts[i];
-            }
+    //         if (block.timestamp < earlyMigrationDeadline) {
+    //             totalEarlyMigratedAmount[migrationPreferences[i]][
+    //                 tokens[i]
+    //             ] += amounts[i];
+    //         } else {
+    //             totalLateMigratedAmount[migrationPreferences[i]][
+    //                 tokens[i]
+    //             ] += amounts[i];
+    //         }
 
-            migratedAmount[migrationPreferences[i]][receiver][
-                tokens[i]
-            ] += amounts[i];
+    //         migratedAmount[migrationPreferences[i]][receiver][
+    //             tokens[i]
+    //         ] += amounts[i];
 
-            migrations[receiver].push(
-                Migration({
-                    user: receiver,
-                    token: tokens[i],
-                    amount: amounts[i],
-                    timestamp: block.timestamp,
-                    block: block.number,
-                    migrationPreference: migrationPreferences[i]
-                })
-            );
-        }
+    //         migrations[receiver].push(
+    //             Migration({
+    //                 user: receiver,
+    //                 token: tokens[i],
+    //                 amount: amounts[i],
+    //                 timestamp: block.timestamp,
+    //                 block: block.number,
+    //                 migrationPreference: migrationPreferences[i]
+    //             })
+    //         );
+    //     }
 
-        emit Migrate(tokens, amounts, migrationPreferences, receiver);
-    }
+    //     emit Migrate(tokens, amounts, migrationPreferences, receiver);
+    // }
 
     function getUserMigrations(
         address user
