@@ -57,7 +57,7 @@ contract Migrator is
     bytes32 public bDEIMerkleRoot;
 
     // users converted amount: user => token => amount
-    // address public 
+    // address public
     mapping(address => mapping(address => uint256)) public convertedAmount;
     address public bDEI;
 
@@ -97,7 +97,10 @@ contract Migrator is
         _unpause();
     }
 
-    function setMerkleRoots(bytes32 legacyDEIMerkleRoot_, bytes32 bDEIMerkleRoot_) external onlyRole(SETTER_ROLE) {
+    function setMerkleRoots(
+        bytes32 legacyDEIMerkleRoot_,
+        bytes32 bDEIMerkleRoot_
+    ) external onlyRole(SETTER_ROLE) {
         legacyDEIMerkleRoot = legacyDEIMerkleRoot_;
         bDEIMerkleRoot = bDEIMerkleRoot_;
 
@@ -108,47 +111,47 @@ contract Migrator is
         bDEI = bDEI_;
     }
 
-    function deposit(
-        address[] memory tokens,
-        uint256[] memory amounts,
-        MigrationPreference[] memory migrationPreferences,
-        address receiver
-    ) external whenNotPaused {
-        for (uint256 i; i < tokens.length; ++i) {
-            IERC20Upgradeable(tokens[i]).safeTransferFrom(
-                msg.sender,
-                address(this),
-                amounts[i]
-            );
+    // function deposit(
+    //     address[] memory tokens,
+    //     uint256[] memory amounts,
+    //     MigrationPreference[] memory migrationPreferences,
+    //     address receiver
+    // ) external whenNotPaused {
+    //     for (uint256 i; i < tokens.length; ++i) {
+    //         IERC20Upgradeable(tokens[i]).safeTransferFrom(
+    //             msg.sender,
+    //             address(this),
+    //             amounts[i]
+    //         );
 
-            if (block.timestamp < earlyMigrationDeadline) {
-                totalEarlyMigratedAmount[migrationPreferences[i]][
-                    tokens[i]
-                ] += amounts[i];
-            } else {
-                totalLateMigratedAmount[migrationPreferences[i]][
-                    tokens[i]
-                ] += amounts[i];
-            }
+    //         if (block.timestamp < earlyMigrationDeadline) {
+    //             totalEarlyMigratedAmount[migrationPreferences[i]][
+    //                 tokens[i]
+    //             ] += amounts[i];
+    //         } else {
+    //             totalLateMigratedAmount[migrationPreferences[i]][
+    //                 tokens[i]
+    //             ] += amounts[i];
+    //         }
 
-            migratedAmount[migrationPreferences[i]][receiver][
-                tokens[i]
-            ] += amounts[i];
+    //         migratedAmount[migrationPreferences[i]][receiver][
+    //             tokens[i]
+    //         ] += amounts[i];
 
-            migrations[receiver].push(
-                Migration({
-                    user: receiver,
-                    token: tokens[i],
-                    amount: amounts[i],
-                    timestamp: block.timestamp,
-                    block: block.number,
-                    migrationPreference: migrationPreferences[i]
-                })
-            );
-        }
+    //         migrations[receiver].push(
+    //             Migration({
+    //                 user: receiver,
+    //                 token: tokens[i],
+    //                 amount: amounts[i],
+    //                 timestamp: block.timestamp,
+    //                 block: block.number,
+    //                 migrationPreference: migrationPreferences[i]
+    //             })
+    //         );
+    //     }
 
-        emit Migrate(tokens, amounts, migrationPreferences, receiver);
-    }
+    //     emit Migrate(tokens, amounts, migrationPreferences, receiver);
+    // }
 
     function getUserMigrations(
         address user
@@ -213,28 +216,28 @@ contract Migrator is
         }
     }
 
-    function split(uint256 index, uint256 amount) external whenNotPaused {
-        require(index < migrations[msg.sender].length, "Index Out Of Range");
+    // function split(uint256 index, uint256 amount) external whenNotPaused {
+    //     require(index < migrations[msg.sender].length, "Index Out Of Range");
 
-        Migration storage migration = migrations[msg.sender][index];
+    //     Migration storage migration = migrations[msg.sender][index];
 
-        require(migration.amount > amount, "Amount Too High");
+    //     require(migration.amount > amount, "Amount Too High");
 
-        migration.amount -= amount;
+    //     migration.amount -= amount;
 
-        migrations[msg.sender].push(
-            Migration({
-                user: msg.sender,
-                token: migration.token,
-                amount: amount,
-                timestamp: migration.timestamp,
-                block: migration.block,
-                migrationPreference: migration.migrationPreference
-            })
-        );
+    //     migrations[msg.sender].push(
+    //         Migration({
+    //             user: msg.sender,
+    //             token: migration.token,
+    //             amount: amount,
+    //             timestamp: migration.timestamp,
+    //             block: migration.block,
+    //             migrationPreference: migration.migrationPreference
+    //         })
+    //     );
 
-        emit Split(msg.sender, index, amount);
-    }
+    //     emit Split(msg.sender, index, amount);
+    // }
 
     function transfer(uint256 index, address receiver) external whenNotPaused {
         require(index < migrations[msg.sender].length, "Index Out Of Range");
@@ -242,6 +245,10 @@ contract Migrator is
 
         // transfer the migration to receiver
         Migration memory migration = migrations[msg.sender][index];
+        require(
+            migration.migrationPreference == MigrationPreference.SYMM,
+            "Migration Locked"
+        );
         migration.user = receiver;
         migrations[receiver].push(migration);
 
@@ -262,89 +269,89 @@ contract Migrator is
         emit Transfer(msg.sender, index, receiver);
     }
 
-    function undo(uint256 index) external whenNotPaused {
-        require(index < migrations[msg.sender].length, "Index Out Of Range");
+    // function undo(uint256 index) external whenNotPaused {
+    //     require(index < migrations[msg.sender].length, "Index Out Of Range");
 
-        // remove the migration from msg.sender migrations
-        Migration memory migration = migrations[msg.sender][index];
-        migrations[msg.sender][index] = migrations[msg.sender][
-            migrations[msg.sender].length - 1
-        ];
-        migrations[msg.sender].pop();
+    //     // remove the migration from msg.sender migrations
+    //     Migration memory migration = migrations[msg.sender][index];
+    //     migrations[msg.sender][index] = migrations[msg.sender][
+    //         migrations[msg.sender].length - 1
+    //     ];
+    //     migrations[msg.sender].pop();
 
-        // reduce user's migrated amount
-        migratedAmount[migration.migrationPreference][msg.sender][
-            migration.token
-        ] -= migration.amount;
+    //     // reduce user's migrated amount
+    //     migratedAmount[migration.migrationPreference][msg.sender][
+    //         migration.token
+    //     ] -= migration.amount;
 
-        // reduce total early/late migrated amount
-        if (migration.timestamp < earlyMigrationDeadline) {
-            totalEarlyMigratedAmount[migration.migrationPreference][
-                migration.token
-            ] -= migration.amount;
-        } else {
-            totalLateMigratedAmount[migration.migrationPreference][
-                migration.token
-            ] -= migration.amount;
-        }
+    //     // reduce total early/late migrated amount
+    //     if (migration.timestamp < earlyMigrationDeadline) {
+    //         totalEarlyMigratedAmount[migration.migrationPreference][
+    //             migration.token
+    //         ] -= migration.amount;
+    //     } else {
+    //         totalLateMigratedAmount[migration.migrationPreference][
+    //             migration.token
+    //         ] -= migration.amount;
+    //     }
 
-        // transfer migrated token back
-        IERC20Upgradeable(migration.token).safeTransfer(
-            msg.sender,
-            migration.amount
-        );
+    //     // transfer migrated token back
+    //     IERC20Upgradeable(migration.token).safeTransfer(
+    //         msg.sender,
+    //         migration.amount
+    //     );
 
-        emit Undo(msg.sender, index);
-    }
+    //     emit Undo(msg.sender, index);
+    // }
 
-    function changePreference(
-        uint256 index,
-        MigrationPreference newPreference
-    ) external whenNotPaused {
-        require(index < migrations[msg.sender].length, "Index Out Of Range");
+    // function changePreference(
+    //     uint256 index,
+    //     MigrationPreference newPreference
+    // ) external whenNotPaused {
+    //     require(index < migrations[msg.sender].length, "Index Out Of Range");
 
-        Migration storage migration = migrations[msg.sender][index];
+    //     Migration storage migration = migrations[msg.sender][index];
 
-        require(
-            migration.migrationPreference != newPreference,
-            "Same Migration Preference"
-        );
+    //     require(
+    //         migration.migrationPreference != newPreference,
+    //         "Same Migration Preference"
+    //     );
 
-        // undo storages which migration preference effects
-        migratedAmount[migration.migrationPreference][msg.sender][
-            migration.token
-        ] -= migration.amount;
+    //     // undo storages which migration preference effects
+    //     migratedAmount[migration.migrationPreference][msg.sender][
+    //         migration.token
+    //     ] -= migration.amount;
 
-        if (migration.timestamp < earlyMigrationDeadline) {
-            totalEarlyMigratedAmount[migration.migrationPreference][
-                migration.token
-            ] -= migration.amount;
-        } else {
-            totalLateMigratedAmount[migration.migrationPreference][
-                migration.token
-            ] -= migration.amount;
-        }
+    //     if (migration.timestamp < earlyMigrationDeadline) {
+    //         totalEarlyMigratedAmount[migration.migrationPreference][
+    //             migration.token
+    //         ] -= migration.amount;
+    //     } else {
+    //         totalLateMigratedAmount[migration.migrationPreference][
+    //             migration.token
+    //         ] -= migration.amount;
+    //     }
 
-        // update migration preference
-        migration.migrationPreference = newPreference;
+    //     // update migration preference
+    //     migration.migrationPreference = newPreference;
 
-        // redo storages which migration preference effects
-        migratedAmount[migration.migrationPreference][msg.sender][
-            migration.token
-        ] += migration.amount;
+    //     // redo storages which migration preference effects
+    //     migratedAmount[migration.migrationPreference][msg.sender][
+    //         migration.token
+    //     ] += migration.amount;
 
-        if (migration.timestamp < earlyMigrationDeadline) {
-            totalEarlyMigratedAmount[migration.migrationPreference][
-                migration.token
-            ] += migration.amount;
-        } else {
-            totalLateMigratedAmount[migration.migrationPreference][
-                migration.token
-            ] += migration.amount;
-        }
+    //     if (migration.timestamp < earlyMigrationDeadline) {
+    //         totalEarlyMigratedAmount[migration.migrationPreference][
+    //             migration.token
+    //         ] += migration.amount;
+    //     } else {
+    //         totalLateMigratedAmount[migration.migrationPreference][
+    //             migration.token
+    //         ] += migration.amount;
+    //     }
 
-        emit ChangePreference(msg.sender, index, newPreference);
-    }
+    //     emit ChangePreference(msg.sender, index, newPreference);
+    // }
 
     function withdraw(
         address[] memory tokens
@@ -357,91 +364,69 @@ contract Migrator is
         }
     }
 
-    function wipeMigrations(
-        address[] memory users,
-        address[] memory tokens
-    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        for (uint256 i = 0; i < users.length; ++i) {
-            address user = users[i];
-            uint256 length = migrations[user].length;
-            for (uint256 k = 0; k < tokens.length; ++k) {
-                uint256 j = 0;
-                while (j < length) {
-                    if (migrations[user][j].token == tokens[k]) {
-                        length -= 1;
-                        migrations[user][j] = migrations[user][length];
-                        migrations[user].pop();
-                    } else {
-                        j += 1;
-                    }
-                }
-            }
-        }
-    }
+    // function convertBDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external whenNotPaused {
+    //     require(amount <= maxAmount, "Invalid Amount");
+    //      if (
+    //         !MerkleProof.verify(
+    //             proof,
+    //             bDEIMerkleRoot,
+    //             keccak256(abi.encode(msg.sender, maxAmount))
+    //         )
+    //     ) revert InvalidProof();
 
-    function convertBDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external whenNotPaused {
-        require(amount <= maxAmount, "Invalid Amount");
-         if (
-            !MerkleProof.verify(
-                proof,
-                bDEIMerkleRoot,
-                keccak256(abi.encode(msg.sender, maxAmount))
-            )
-        ) revert InvalidProof();
+    //     convertedAmount[msg.sender][bDEI] += amount;
+    //     require(convertedAmount[msg.sender][bDEI] <= maxAmount, "Amount Too High");
 
-        convertedAmount[msg.sender][bDEI] += amount;
-        require(convertedAmount[msg.sender][bDEI] <= maxAmount, "Amount Too High");
+    //     IERC20Upgradeable(bDEI).safeTransferFrom(
+    //         msg.sender,
+    //         address(this),
+    //         amount
+    //     );
 
-        IERC20Upgradeable(bDEI).safeTransferFrom(
-            msg.sender,
-            address(this),
-            amount
-        );
+    //     uint256 deusAmount = amount / 185;
+    //     IERC20Upgradeable(DEUS).safeTransfer(msg.sender, deusAmount);
 
-        uint256 deusAmount = amount / 185;
-        IERC20Upgradeable(DEUS).safeTransfer(msg.sender, deusAmount);
+    //     emit Convert(bDEI, amount, deusAmount);
+    // }
 
-        emit Convert(bDEI, amount, deusAmount);
-    }
+    // function convertLegacyDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external whenNotPaused {
+    //     require(amount <= maxAmount, "Invalid Amount");
+    //      if (
+    //         !MerkleProof.verify(
+    //             proof,
+    //             legacyDEIMerkleRoot,
+    //             keccak256(abi.encode(msg.sender, maxAmount))
+    //         )
+    //     ) revert InvalidProof();
 
-    function convertLegacyDEI(uint256 amount, uint256 maxAmount, bytes32[] memory proof) external whenNotPaused {
-        require(amount <= maxAmount, "Invalid Amount");
-         if (
-            !MerkleProof.verify(
-                proof,
-                legacyDEIMerkleRoot,
-                keccak256(abi.encode(msg.sender, maxAmount))
-            )
-        ) revert InvalidProof();
+    //     address legacyDEI = 0xDE12c7959E1a72bbe8a5f7A1dc8f8EeF9Ab011B3;
+    //     convertedAmount[msg.sender][legacyDEI] += amount;
+    //     require(convertedAmount[msg.sender][legacyDEI] <= maxAmount, "Amount Too High");
 
-        address legacyDEI = 0xDE12c7959E1a72bbe8a5f7A1dc8f8EeF9Ab011B3;
-        convertedAmount[msg.sender][legacyDEI] += amount;
-        require(convertedAmount[msg.sender][legacyDEI] <= maxAmount, "Amount Too High");
+    //     IERC20Upgradeable(legacyDEI).safeTransferFrom(
+    //         msg.sender,
+    //         address(this),
+    //         amount
+    //     );
 
-        IERC20Upgradeable(legacyDEI).safeTransferFrom(
-            msg.sender,
-            address(this),
-            amount
-        );
+    //     uint256 deusAmount = amount / 217;
+    //     IERC20Upgradeable(DEUS).safeTransfer(msg.sender, deusAmount);
 
-        uint256 deusAmount = amount / 217;
-        IERC20Upgradeable(DEUS).safeTransfer(msg.sender, deusAmount);
+    //     emit Convert(legacyDEI, amount, deusAmount);
+    // }
 
-        emit Convert(legacyDEI, amount, deusAmount);
-    }
+    // function convertXDEUS(uint256 amount) external whenNotPaused {
+    //     address xDeus = 0x953Cd009a490176FcEB3a26b9753e6F01645ff28;
+    //     IERC20Upgradeable(xDeus).safeTransferFrom(
+    //         msg.sender,
+    //         address(this),
+    //         amount
+    //     );
 
-    function convertXDEUS(uint256 amount) external whenNotPaused {
-        address xDeus = 0x953Cd009a490176FcEB3a26b9753e6F01645ff28;
-        IERC20Upgradeable(xDeus).safeTransferFrom(
-            msg.sender,
-            address(this),
-            amount
-        );
+    //     convertedAmount[msg.sender][xDeus] += amount;
 
-        convertedAmount[msg.sender][xDeus] += amount;
+    //     IERC20Upgradeable(DEUS).safeTransfer(msg.sender, amount);
 
-        IERC20Upgradeable(DEUS).safeTransfer(msg.sender, amount);
-
-        emit Convert(xDeus, amount, amount);
-    }
+    //     emit Convert(xDeus, amount, amount);
+    // }
 }
